@@ -1,0 +1,44 @@
+#!/bin/bash
+
+CLASSPATH=/usr/share/java/*:/usr/share/plantuml/plantuml.jar
+[ -f /etc/default/plantuml ] && . /etc/default/plantuml
+
+NAME=$(basename ${0})
+
+$(ads init - --  "${@}" <<EOF
+#NAME: ${NAME}
+#TITLE: ${NAME} manual.
+#VERSION: ${VERSION}
+#SHORT_DESCRIPTION: PlantUML lancher.
+#DESCRIPTION: Launches PlantUML. End of launcher\'s options may be marked by *--* option, then the folowing will be passed to PlantUML.
+conf <conf-file>: Configuration file.
+format <format>: Outupt format (pdf, svg, png, xmi, xmi:staruml, xmi:argouml).
+out <dir>: The output directory.
+in <file>: PlantUML input file. May be set several times.
+version: Print version.
+EOF
+)
+
+: ${FORMAT:=pdf}
+: ${CONF:=/etc/plantuml.conf}
+: ${JAR:=/usr/share/plantuml/plantuml.jar}
+: ${VERSION:=false}
+
+case ${NAME/pu2/} in
+	png|pdf|svg|latex) FORMAT=${NAME/pu2/};;
+	xmi) FORMAT=xmi:staruml;;
+esac
+
+if ${VERSION}; then
+	java -cp "${CLASSPATH}" net.sourceforge.plantuml.Run -version|sed -n 's/PlantUML version\s*\([^ ]\+\).*/\1/p'
+	exit 0
+fi
+
+if [ -f "${CONF}" ]; then
+	CONF="-config ${CONF}"
+else
+	unset CONF
+fi
+
+echo java -cp "${CLASSPATH}" net.sourceforge.plantuml.Run -t${FORMAT} ${CONF} ${IN} $@
+java -cp "${CLASSPATH}" net.sourceforge.plantuml.Run -t${FORMAT} ${CONF} ${IN} $@

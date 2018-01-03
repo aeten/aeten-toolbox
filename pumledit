@@ -1,0 +1,13 @@
+#!/bin/bash
+
+puml=${1}
+png=${puml%.puml}.png
+png=${puml%.plantuml}.png
+
+while true; do
+	inotifywait -r --event close_write ${puml}
+	pu2png ${puml}; xdg-open ${png}
+done &> /dev/null &
+
+${EDITOR} ${puml}
+

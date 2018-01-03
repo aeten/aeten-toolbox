@@ -1,0 +1,29 @@
+#!/bin/bash
+#  - Returns a HTTP proxy which is available for use
+
+HTTP_PROXIES=
+[ -f /etc/default/detect-http-proxy ] && . /etc/default/detect-http-proxy
+grep /apt/ /proc/$PPID/cmdline >& /dev/null || {
+	HTTP_PROXIES=$(echo ${HTTP_PROXIES}|sed 's,\S*apt\S\+,,')
+}
+
+[ true = "${SHOW_PROXY_MESSAGE}" ] || SHOW_PROXY_MESSAGE=false
+
+print_msg() {
+    # \x0d clears the line so [Working] is hidden
+    ${SHOW_PROXY_MESSAGE} && printf '\x0d%s\n' "$1" >&2
+}
+
+for proxy in $(echo ${HTTP_PROXIES}); do
+    # if the host machine / proxy is reachable...
+    if nc -w 2 -z ${proxy/:/ }; then
+        proxy=http://${proxy}
+        print_msg "Proxy that will be used: ${proxy}"
+        echo "${proxy}"
+        exit 0
+    fi
+done
+print_msg "No proxy will be used"
+
+echo DIRECT
+exit 0

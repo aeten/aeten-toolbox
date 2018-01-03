@@ -1,0 +1,4 @@
+#!/bin/sh
+
+core=/var/crash/$(ls -t /var/crash/|head -n 1)
+gdb -c ${core} $(file ${core}|sed -n "s/.*from '\([^']\+\)'.*/\1/p")
