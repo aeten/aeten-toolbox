@@ -14,7 +14,7 @@ $(ads init - --  "${@}" <<EOF
 conf <conf-file>: Configuration file.
 format <format>: Outupt format (pdf, svg, png, xmi, xmi:staruml, xmi:argouml).
 out <dir>: The output directory.
-in <file>: PlantUML input file. May be set several times.
+!in <file>: PlantUML input file. May be set several times.
 version: Print version.
 EOF
 )
@@ -26,7 +26,7 @@ EOF
 
 case ${NAME/pu2/} in
 	png|pdf|svg|latex) FORMAT=${NAME/pu2/};;
-	xmi) FORMAT=xmi:staruml;;
+	xmi)               FORMAT=xmi:staruml;;
 esac
 
 if ${VERSION}; then
@@ -40,5 +40,11 @@ else
 	unset CONF
 fi
 
-echo java -cp "${CLASSPATH}" net.sourceforge.plantuml.Run -t${FORMAT} ${CONF} ${IN} $@
-java -cp "${CLASSPATH}" net.sourceforge.plantuml.Run -t${FORMAT} ${CONF} ${IN} $@
+[ -n "${OUT}" ] && {
+	[ -d "${OUT}" ] && OUT="-output $(realpath --relative-to="$(dirname "${IN}")" "${OUT}")" || {
+		echo "Invalid output directory '${OUT}'" >&2
+		exit 1
+	}
+}
+
+java -cp "${CLASSPATH}" net.sourceforge.plantuml.Run -t${FORMAT} ${CONF} $@ ${OUT} "${IN}"
