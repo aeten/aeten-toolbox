@@ -1,13 +1,20 @@
 #!/bin/bash
+set -e
 
-puml=${1}
-png=${puml%.puml}.png
-png=${puml%.plantuml}.png
-
+tmpdir=$(mktemp --directory)
+puml=$(readlink -f "${1}")
+png="${puml%.*}"
+png="${tmpdir}/${png##*/}.png"
 while true; do
-	inotifywait -r --event close_write ${puml}
-	pu2png ${puml}; xdg-open ${png}
+	inotifywait --event attrib "${puml}" && {
+		pu2png --in "${puml}" --out "${tmpdir}"
+		[ -f "${png}" ] && { pgrep -f "${png}" >& /dev/null || xdg-open "${png}"; }
+	}
 done &> /dev/null &
+NOTIFY_LOOP_PID=$!
 
 ${EDITOR} ${puml}
+kill -s TERM $NOTIFY_LOOP_PID >& /dev/null
+wait >& /dev/null
+rm -rf "${tmpdir}"
 
