@@ -1,0 +1,3 @@
+#!/bin/bash
+xclip -o | trans :${LANG/_*/} -e google -b | tee >(yad --title Traduction --geometry=400x400-0+0 --text-info  --wrap) >(xclip -i)
+exit 0
