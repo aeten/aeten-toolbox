@@ -1,20 +1,25 @@
 #!/bin/bash
-set -e
 
 tmpdir=$(mktemp --directory)
 puml=$(readlink -f "${1}")
+shift
 png="${puml%.*}"
 png="${tmpdir}/${png##*/}.png"
+
+cleanup() {
+	pkill --signal TERM --parent ${notify_loop_pid} >& /dev/null
+	kill -s TERM ${notify_loop_pid} >& /dev/null
+	wait >& /dev/null
+	rm -rf "${tmpdir}"
+}
+
 while true; do
 	inotifywait --event attrib "${puml}" && {
-		pu2png --in "${puml}" --out "${tmpdir}"
+		pu2png --in "${puml}" --out "${tmpdir}" -- $@
 		[ -f "${png}" ] && { pgrep -f "${png}" >& /dev/null || xdg-open "${png}"; }
 	}
 done &> /dev/null &
-NOTIFY_LOOP_PID=$!
+notify_loop_pid=$!
 
+trap cleanup ERR EXIT QUIT TERM ABRT
 ${EDITOR} ${puml}
-kill -s TERM $NOTIFY_LOOP_PID >& /dev/null
-wait >& /dev/null
-rm -rf "${tmpdir}"
-
