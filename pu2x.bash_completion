@@ -1,0 +1,47 @@
+#!/bin/bash
+
+_pu2x() {
+	local i options oformat in comp
+
+	comp='--help --in --format --conf'
+	for i in $(seq 0 $COMP_CWORD); do
+		case ${COMP_WORDS[$i]} in
+			-i|--in)     [ -n "${COMP_WORDS[$i + 1]}" ] && options+=i; comp=${comp/--in/};;
+			-o|--out)    [ -n "${COMP_WORDS[$i + 1]}" ] && options+=o; comp=${comp/--out/};;
+			-f|--format) [ -n "${COMP_WORDS[$i + 1]}" ] && options+=f; comp=${comp/--format/};;
+			-c|--conf)   [ -n "${COMP_WORDS[$i + 1]}" ] && options+=c; comp=${comp/--conf/};;
+			-h|--help)   [ -n "${COMP_WORDS[$i + 1]}" ] && options+=h; comp=${comp/--help/};;
+		esac
+	done
+	if [ ${COMP_WORDS[0]} != pu2x ]; then
+		comp=${comp/--format/}
+	fi
+	if { [ ${COMP_WORDS[0]} != pu2x ] || [ "${options/*f*/f}" = f ] ; } && [ "${options/*i*/i}" = i ] && [ "${options/*o*/o}" != o ]; then
+		comp+=' --out'
+	fi
+	case ${COMP_WORDS[COMP_CWORD - 1]} in
+		-i|--in)     COMPREPLY=( $(ls *.pu 2>/dev/null) );;
+		-f|--format) COMPREPLY=( $(compgen -W "pdf png svg xmi latex" -- ${COMP_WORDS[COMP_CWORD]}) );;
+		-c|--conf)   COMPREPLY=( $(compgen -W "$([ -z "${COMP_WORDS[COMP_CWORD]}" ] && ls 2>/dev/null || find ${COMP_WORDS[COMP_CWORD]}$([ -e ${COMP_WORDS[COMP_CWORD]} ] || echo '*') -maxdepth 1 2>/dev/null)" -- ${COMP_WORDS[COMP_CWORD]}) );;
+		-o|--out)
+			if [ ${COMP_WORDS[0]} != pu2x ]; then
+				oformat=${COMP_WORDS[0]##*pu2}
+			fi
+			for i in $(seq 0 $COMP_CWORD); do
+				case ${COMP_WORDS[$i]} in
+					-f|--format) oformat=${COMP_WORDS[$i + 1]};;
+					-i|--in) in=${COMP_WORDS[$i + 1]};;
+				esac
+				if [ "${COMP_WORDS[$i]}" = --in ]; then
+					in=${COMP_WORDS[$i + 1]}
+				fi
+			done
+
+			COMPREPLY=( ${in%%.pu}.${oformat} );;
+		-h|--help) COMPREPLY=;;
+		*) COMPREPLY=( $(compgen -W "${comp//  / }" -- ${COMP_WORDS[COMP_CWORD]}) );;
+	esac
+}
+
+complete -F _pu2x pu2{x,png,pdf,svg,xmi,latex}
+
