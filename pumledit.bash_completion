@@ -1,8 +1,2 @@
 #!/bin/bash
-
-_pumledit() {
-	if [ $COMP_CWORD -lt 2 ]; then
-		COMPREPLY=( $(ls *.pu 2>/dev/null) )
-	fi
-}
-complete -F _pumledit pumledit
+complete -f -o dirnames -X '!*.@(pu|puml)' pumledit

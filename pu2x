@@ -5,16 +5,16 @@ CLASSPATH=/usr/share/java/*:/usr/share/plantuml/plantuml.jar
 
 NAME=$(basename ${0})
 
-$(ads init - --  "${@}" <<EOF
+. <(ads init - -- "${@}" <<EOF
 #NAME: ${NAME}
 #TITLE: ${NAME} manual.
 #VERSION: ${VERSION}
 #SHORT_DESCRIPTION: PlantUML lancher.
 #DESCRIPTION: Launches PlantUML. End of launcher\'s options may be marked by *--* option, then the folowing will be passed to PlantUML.
-conf <conf-file>: Configuration file.
-format <format>: Outupt format (pdf, svg, png, xmi, xmi:staruml, xmi:argouml).
-out <dir>: The output directory.
-!in <file>: PlantUML input file. May be set several times.
+!in /file: PlantUML input file. May be set several times.
+out /dir/: The output directory.
+format pdf|svg|png|xmi|xmi:staruml|xmi:argouml|latex: Outupt format (pdf, svg, png, xmi, xmi:staruml, xmi:argouml).
+conf /conf-file: Configuration file.
 version: Print version.
 EOF
 )
